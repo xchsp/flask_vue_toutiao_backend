@@ -4,6 +4,21 @@ from models import Post, User, Comment, Category, Cover
 from mongoengine.errors import ValidationError
 from views.authorization import login_required
 
+# 前台请求
+@app.route("/api/posts", methods=["GET"])
+def client_get_posts():
+
+    pageIndex = int(request.args.get("pageIndex"))
+    pageSize = int(request.args.get("pageSize"))
+    category = request.args.get("category")
+
+    if category:
+        posts = Post.objects(categories=category).order_by("-created")
+
+    paginated_posts = posts.skip((pageIndex-1)*pageSize).limit(pageSize)
+
+    return jsonify(paginated_posts.to_public_json())
+
 
 # 后台请求
 @app.route("/api/post", methods=["GET"])
