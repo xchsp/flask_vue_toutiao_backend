@@ -297,7 +297,22 @@ def post_like(userid, id):
 
 
 
+# 后台请求
+@app.route("/api/post_search", methods=["GET"])
+@login_required
+def post_search(userid):
+    try:
+        user = User.objects(id=userid).first()
+    except ValidationError:
+        return jsonify({"error": "User not found"}), 404
 
+    keyword = request.args.get("keyword")
+
+    print(keyword.strip())
+    from mongoengine.queryset.visitor import Q
+    posts = Post.objects(Q(content__icontains=keyword.strip())|Q(title__icontains=keyword.strip()))
+
+    return jsonify(posts.to_public_json())
 
 
 
