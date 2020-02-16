@@ -191,5 +191,113 @@ def posts_delete(userid, id):
 
 
 
+@app.route("/api/post_comment/<string:id>", methods=["GET","POST"])
+@login_required
+def posts_create_comment(userid, id):
+    if request.method == 'POST':
+        if not request.json.get('content'):
+            return jsonify({"error": "No content specified"}), 409
+        content = request.json.get('content')
+
+        try:
+            post = Post.objects(pk=id).first()
+        except ValidationError:
+            return jsonify({"error": "Post not found"}), 404
+
+        user = User.objects(id=userid).first()
+        comments = post.comments
+        comments.append(Comment(user=user, content=content))
+        post.save()
+
+        return jsonify([{
+            "content": comment.content,
+            "created": comment.created.strftime("%Y-%m-%d %H:%M:%S"),
+            "user": {
+                "id": str(comment.user.id),
+                "username": comment.user.username
+            }
+        } for comment in post.comments][::-1]
+        )
+    else:
+        try:
+            post = Post.objects(pk=id).first()
+        except ValidationError:
+            return jsonify({"error": "Post not found"}), 404
+
+        if not request.args.get('pageSize'):
+            pageSize = len(post.comments)
+        else:
+            pageSize = int(request.args.get('pageSize'))
+
+
+        commentLst = []
+        for comment in post.comments[::-1]:
+            commentLst.append({
+            "content": comment.content,
+            "created": comment.created.strftime("%Y-%m-%d %H:%M:%S"),
+            "user": {
+                "id": str(comment.user.id),
+                "nickname": comment.user.username
+            }
+        })
+
+            pageSize -= 1
+            if pageSize == 0:
+                break
+
+        return jsonify(commentLst)
+
+@app.route("/api/post_star/<string:id>", methods=["GET"])
+@login_required
+def post_star(userid, id):
+    try:
+        post = Post.objects(pk=id).first()
+    except ValidationError:
+        return jsonify({"error": "Post not found"}), 404
+
+    user = User.objects(id=userid).first()
+
+    user_collect = post.user_collect
+
+
+    if user.username in [u["username"] for u in user_collect]:
+        # User already collect
+        user_collect_index = [d.username for d in user_collect].index(username)
+        user_collect.pop(user_collect_index)
+        post.save()
+        return jsonify('取消成功')
+    else:
+        user_collect.append(user)
+        post.save()
+        return jsonify('收藏成功')
+
+@app.route("/api/post_like/<string:id>", methods=["GET"])
+@login_required
+def post_like(userid, id):
+    try:
+        post = Post.objects(pk=id).first()
+    except ValidationError:
+        return jsonify({"error": "Post not found"}), 404
+
+    user = User.objects(id=userid).first()
+
+    user_agree = post.user_agree
+
+
+    if user.username in [u["username"] for u in user_agree]:
+        # User already agree
+        user_collect_index = [d.username for d in user_agree].index(user.username)
+        user_agree.pop(user_collect_index)
+        post.save()
+        return jsonify('取消成功')
+    else:
+        user_agree.append(user)
+        post.save()
+        return jsonify('点赞成功')
+
+
+
+
+
 
 
