@@ -5,9 +5,9 @@ from models import Category
 
 @app.route("/api/category")
 def category():
-    cate = Category(
-        name='css',
-    ).save()
+    # cate = Category(
+    #     name='css',
+    # ).save()
 
     category = Category.objects()
 

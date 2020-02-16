@@ -15,7 +15,8 @@ def images_get(filename):
 
 from views.authorization import *
 from views.category import *
-
+from views.posts import *
+from views.upload import *
 
 @app.errorhandler(404)
 def page_not_found(e):
