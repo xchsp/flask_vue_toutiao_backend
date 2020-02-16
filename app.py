@@ -13,6 +13,7 @@ CORS(app)
 def images_get(filename):
     return send_from_directory(config.image_upload_folder, filename)
 
+from views.authorization import *
 from views.category import *
 
 
